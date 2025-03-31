@@ -1,0 +1,27 @@
+{
+  "name": "intro-to-mongoose-lab",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Matt-Gallery/intro-to-mongoose-lab.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Matt-Gallery/intro-to-mongoose-lab/issues"
+  },
+  "homepage": "https://github.com/Matt-Gallery/intro-to-mongoose-lab#readme",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "mongoose": "^8.12.2",
+    "prompt-sync": "^4.2.0",
+    "readline-sync": "^1.4.10"
+  }
+}
