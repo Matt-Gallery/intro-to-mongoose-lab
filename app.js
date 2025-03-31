@@ -1,78 +1,90 @@
-import "dotenv/config";
-import mongoose from "mongoose";
-import promptSync from "prompt-sync";
+import 'dotenv/config';
+import mongoose from 'mongoose';
+import promptSync from 'prompt-sync';
 
-// const username = prompt('What is your name? ');
 const prompt = promptSync();
 
-// console.log(`Your name is ${username}`);
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB!'))
+  .catch((err) => console.error('Error connecting to MongoDB:', err));
 
-function displayMenu() {
-  console.log("Welcome to the CRM!");
-  console.log("What would you like to do?");
-  console.log("1. Option 1 - Create");
-  console.log("2. Option 2 - View");
-  console.log("3. Option 3 - Update");
-  console.log("4. Option 4 - Delete");
-  console.log("5. Option 5 - Quit");
+const customersSchema = new mongoose.Schema({
+  name: String,
+  age: Number,
+});
+
+const Customers = mongoose.model('customers', customersSchema);
+
+async function createCustomer() {
+  const name = prompt('Enter customer name: ');
+  const age = parseInt(prompt('Enter customer age: '), 10);
+
+  const customer = new Customers({ name, age });
+  await customer.save();
+  console.log('Customer created successfully:', customer);
 }
 
-function handleChoice(choice) {
-  switch (choice) {
-    case "1":
-      console.log("You chose Option 1");
-      // Handle option 1 logic
-      break;
-    case "2":
-      console.log("You chose Option 2");
-      // Handle option 2 logic
-      break;
-    case "3":
-      console.log("You chose Option 3");
-      // Handle option 3 logic
-      break;
-    case "4":
-      console.log("You chose Option 4");
-      // Handle option 4 logic
-      break;
-    case "5":
-      console.log("You chose Option 5");
-      // Handle option 5 logic
-      break;
-    default:
-      console.log("Invalid choice. Please select a number between 1 and 5.");
+async function viewCustomers() {
+  const customers = await Customers.find();
+  console.log('Below is a list of customers:');
+  customers.forEach((cust, idx) => console.log(`${idx + 1}. ID: ${cust._id}, Name: ${cust.name}, Age: ${cust.age}`));
+}
+
+async function updateCustomer() {
+  const id = prompt('Enter customer ID to update: ');
+  const customer = await Customers.findById(id);
+
+  if (!customer) {
+    console.log('Customer not found.');
+    return;
   }
+
+  const name = prompt(`What is the customer's new name? (current: ${customer.name}): `);
+  const age = parseInt(prompt(`What is the customer's new age? (current: ${customer.age}): `), 10);
+
+  customer.name = name || customer.name;
+  customer.age = age || customer.age;
+
+  await customer.save();
+  console.log('Customer updated successfully:', customer);
 }
 
-let continueLoop = true;
-while (continueLoop) {
-  displayMenu();
-  const choice = prompt("Enter your choice (1-5): ");
+async function deleteCustomer() {
+  const id = prompt('Enter customer ID to delete: ');
+  const customer = await Customers.findByIdAndDelete(id);
 
-  if (choice === null) {
-    continueLoop = false;
-    console.log("Exiting the program.");
+  if (customer) {
+    console.log('Customer deleted successfully:', customer);
   } else {
-    handleChoice(choice);
+    console.log('Customer not found.');
   }
 }
-r;
 
-const connect = async () => {
-  // Connect to MongoDB using the MONGODB_URI specified in our .env file.
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log("Connected to MongoDB");
+async function mainMenu() {
+  let choice;
 
-  // Call the runQueries function, which will eventually hold functions to work
-  // with data in our db.
-  await runQueries();
+  do {
+    console.log('\nCustomer Management System');
+    console.log('1. Create a Customer');
+    console.log('2. View all Customers');
+    console.log('3. Update a Customer');
+    console.log('4. Delete a Customer');
+    console.log('5. Quit');
 
-  // Disconnect our app from MongoDB after our queries run.
-  await mongoose.disconnect();
-  console.log("Disconnected from MongoDB");
+    choice = prompt('Enter your choice (1-5): ');
 
-  // Close our app, bringing us back to the command line.
-  process.exit();
-};
+    switch (choice) {
+      case '1': await createCustomer(); break;
+      case '2': await viewCustomers(); break;
+      case '3': await updateCustomer(); break;
+      case '4': await deleteCustomer(); break;
+      case '5': console.log('Exiting system.'); break;
+      default: console.log('Invalid option. Please choose 1-5.');
+    }
+  } while (choice !== '5');
 
-connect();
+  mongoose.connection.close();
+}
+
+mainMenu();
